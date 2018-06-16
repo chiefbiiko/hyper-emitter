@@ -12,9 +12,9 @@ tape('hyperEmitter mixes in EventEmitter.prototype', function (t) {
 
 tape('emits on (after) simple property mutation', function (t) {
   var hyperObject = hyperEmitter({ a: 1, b: 419 })
-  hyperObject.on('didSet', function (target, property, value, receiver) {
-    if (property.startsWith('_')) return
-    t.is(hyperObject[property], 187, 'hyperObject.' + property + ' hyper set')
+  hyperObject.on('didSet', function (target, key, value, receiver) {
+    if (key.startsWith('_')) return
+    t.is(hyperObject[key], 187, 'hyperObject.' + key + ' hyper set')
     t.end()
   })
   hyperObject.a = 187
@@ -50,6 +50,24 @@ tape('emits on (after) prototype mutation', function (t) {
   Object.setPrototypeOf(hyperObject, prototype)
 })
 
+tape('does not notice nested property mutations', function (t) {
+  var hyperObject = hyperEmitter({ a: { b: 3 } })
+  hyperObject.on('didSet', function (target, key, value, receiver) {
+    if (key.startsWith('_')) return
+    t.fail('should be unreachable')
+  })
+  hyperObject.a.b = 5
+  t.is(hyperObject.a.b, 5, 'beware: nested property mutated silently')
+  t.end()
+})
+
 tape('some exiting type', function (t) {
-  t.false(true)
+  var hyperStream = hyperEmitter(require('stream').PassThrough())
+  hyperStream.on('didSet', function (target, key, value, receiver) {
+    if (key.startsWith('_')) return
+    t.is(key, 'hyper', 'hyper')
+    t.is(value, true, 'true')
+    t.end()
+  })
+  hyperStream.hyper = true
 })

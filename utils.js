@@ -68,8 +68,6 @@ function processOpts (opts) {
 
 module.exports = {
   listenable,
-  problyEventEmitter,
-  problyEventTarget,
   problyListenable,
   processOpts,
   reemit

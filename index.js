@@ -1,8 +1,6 @@
 var EventEmitter = require('events').EventEmitter
 var {
   listenable,
-  problyEventEmitter,
-  problyEventTarget,
   problyListenable,
   processOpts,
   reemit

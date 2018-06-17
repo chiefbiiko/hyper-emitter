@@ -64,7 +64,11 @@ tape('some exiting type', function (t) {
     t.is(value, true, 'true')
     t.end()
   })
-  hyperStream.hyper = true
+  hyperStream.on('data', function (chunk) {
+    t.is(chunk.toString(), 'fraud', 'is fraud')
+    hyperStream.hyper = true
+  })
+  hyperStream.write('fraud')
 })
 
 tape('catch-all change event', function (t) {

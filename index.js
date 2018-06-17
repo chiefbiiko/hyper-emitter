@@ -5,6 +5,10 @@ function shouldEmit (ok, only, key) {
   return true && !only.length || ok && only.length && only.indexOf(key) !== -1
 }
 
+// TODO:
+// + allow exclude aka ignore along with only
+// + trap _eventsCount on hyperEmitter and diable emits for it
+// + think about a way of observing nested property mutations
 function hyperEmitter (target, opts) {
   opts = Object.assign({ only: [] }, dealias(opts || {}, { only: [ 'keys' ] }))
   var setup = false

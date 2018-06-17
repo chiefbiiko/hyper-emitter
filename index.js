@@ -7,14 +7,31 @@ function shouldEmit (ok, only, key) {
 
 // TODO:
 // + allow exclude aka ignore along with only
-// + trap _eventsCount on hyperEmitter and diable emits for it
-// + think about a way of observing nested property mutations
 function hyperEmitter (target, opts) {
-  opts = Object.assign({ only: [] }, dealias(opts || {}, { only: [ 'keys' ] }))
+  opts = Object.assign({
+    ignoreEventsCount: true,
+    only: [],
+    recursive: false
+  }, dealias(opts || {}, {
+    only: [ 'keys' ],
+    recursive: [ 'recurse', 'deep', 'nested', 'cascade' ]
+  }))
   var setup = false
   var handler = {
+    get (target, key, receiver) {
+      if (opts.recursive) {
+        try {
+          return new Proxy(target[key], handler)
+        } catch (_) {
+          return Reflect.get(target, key, receiver)
+        }
+      } else {
+        return Reflect.get(target, key, receiver)
+      }
+    },
     defineProperty (target, key, descriptor) {
       var ok = Reflect.defineProperty(target, key, descriptor)
+      if (key === '_eventsCount' && opts.ignoreEventsCount) return ok
       if (shouldEmit(ok, opts.only, key)) {
         proxy.emit('didDefineProperty', target, key, descriptor)
       }
@@ -29,6 +46,7 @@ function hyperEmitter (target, opts) {
     },
     set (target, key, value, receiver) {
       var ok = Reflect.set(target, key, value, receiver)
+      if (key === '_eventsCount' && opts.ignoreEventsCount) return ok
       if (shouldEmit(ok, opts.only, key)) {
         proxy.emit('didSet', target, key, value, receiver)
       }

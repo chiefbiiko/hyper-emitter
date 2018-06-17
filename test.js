@@ -13,7 +13,6 @@ tape('hyperEmitter mixes in EventEmitter.prototype', function (t) {
 tape('emits on (after) simple property mutation', function (t) {
   var hyperObject = hyperEmitter({ a: 1, b: 419 })
   hyperObject.on('didSet', function (target, key, value, receiver) {
-    if (key.startsWith('_')) return
     t.is(hyperObject[key], 187, 'hyperObject.' + key + ' hyper set')
     t.end()
   })
@@ -23,7 +22,6 @@ tape('emits on (after) simple property mutation', function (t) {
 tape('emits on (after) property definition', function (t) {
   var hyperObject = hyperEmitter({ a: 1, b: 419 })
   hyperObject.on('didDefineProperty', function (target, key, descriptor) {
-    if (key.startsWith('_')) return
     t.is(hyperObject[key], descriptor.value, 'defined correctly')
     t.end()
   })
@@ -45,20 +43,18 @@ tape('emits on (after) prototype mutation', function (t) {
     t.same(Object.getPrototypeOf(hyperObject), prototype, 'same')
     t.end()
   })
-  var prototype =
-    Object.assign({ noop: function () {} }, Object.getPrototypeOf(hyperObject))
-  Object.setPrototypeOf(hyperObject, prototype)
+  var proto = Object.assign({ noop () {} }, Object.getPrototypeOf(hyperObject))
+  Object.setPrototypeOf(hyperObject, proto)
 })
 
-tape('does not notice nested property mutations', function (t) {
-  var hyperObject = hyperEmitter({ a: { b: 3 } })
+tape('optionally recursive', function (t) {
+  var hyperObject = hyperEmitter({ a: { b: 3 } }, { recursive: true })
   hyperObject.on('didSet', function (target, key, value, receiver) {
     if (key.startsWith('_')) return
-    t.fail('should be unreachable')
+    t.is(hyperObject.a.b, 5, 'got noticed')
+    t.end()
   })
   hyperObject.a.b = 5
-  t.is(hyperObject.a.b, 5, 'beware: nested property mutated silently')
-  t.end()
 })
 
 tape('some exiting type', function (t) {

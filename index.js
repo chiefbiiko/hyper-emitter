@@ -2,7 +2,7 @@ var EventEmitter = require('events').EventEmitter
 var dealias = require('aka-opts')
 
 function shouldEmit (ok, only, key) {
-  return true && !only.length || ok && only.length && only.indexOf(key) !== -1
+  return ok && !only.length || ok && only.length && only.indexOf(key) !== -1
 }
 
 // TODO:

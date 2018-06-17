@@ -1,6 +1,7 @@
 var tape = require('tape')
 var hyperEmitter = require('./index')
 var EventEmitter = require('events').EventEmitter
+var PassThrough = require('stream').PassThrough
 
 tape('hyperEmitter mixes in EventEmitter.prototype', function (t) {
   var hyperObject = hyperEmitter({ a: 1, b: 419 })
@@ -58,7 +59,7 @@ tape('optionally recursive', function (t) {
 })
 
 tape('some exiting type', function (t) {
-  var hyperStream = hyperEmitter(require('stream').PassThrough())
+  var hyperStream = hyperEmitter(PassThrough())
   hyperStream.on('didSet', function (target, key, value, receiver) {
     if (key.startsWith('_')) return
     t.is(key, 'hyper', 'hyper')

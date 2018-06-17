@@ -1,7 +1,7 @@
 {
   "name": "hyper-emitter",
-  "version": "0.2.1",
-  "description": "turn an object to an event emitter using a proxy",
+  "version": "0.3.0",
+  "description": "turn any object to an event emitter using a proxy",
   "main": "index.js",
   "dependencies": {
     "aka-opts": "0.0.3"

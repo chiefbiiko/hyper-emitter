@@ -40,25 +40,37 @@ function hyperEmitter (target, opts) {
     defineProperty (target, key, descriptor) {
       var ok = Reflect.defineProperty(target, key, descriptor)
       if (opts.ignoreHiddenProps && key[0] === '_') return ok
-      if (ok) proxy.emit('didDefineProperty', target, key, descriptor)
+      if (ok) {
+        proxy.emit('didDefineProperty', target, key, descriptor)
+        proxy.emit('change')
+      }
       return ok
     },
     deleteProperty (target, key) {
       var ok = Reflect.deleteProperty(target, key)
       if (opts.ignoreHiddenProps && key[0] === '_') return ok
-      if (ok) proxy.emit('didDeleteProperty', target, key)
+      if (ok) {
+        proxy.emit('didDeleteProperty', target, key)
+        proxy.emit('change')
+      }
       return ok
     },
     set (target, key, value, receiver) {
       var ok = Reflect.set(target, key, value, receiver)
       if (opts.ignoreHiddenProps && key[0] === '_') return ok
-      if (ok) proxy.emit('didSet', target, key, value, receiver)
+      if (ok) {
+        proxy.emit('didSet', target, key, value, receiver)
+        proxy.emit('change')
+      }
       return ok
     },
     setPrototypeOf (target, prototype) {
       var ok = Reflect.setPrototypeOf(target, prototype)
       if (!setup) setup = true
-      if (ok && setup) proxy.emit('didSetPrototypeOf', target, prototype)
+      if (ok && setup) {
+        proxy.emit('didSetPrototypeOf', target, prototype)
+        proxy.emit('change')
+      }
       return ok
     }
   }, opts)

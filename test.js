@@ -51,7 +51,6 @@ tape('emits on (after) prototype mutation', function (t) {
 tape('optionally recursive', function (t) {
   var hyperObject = hyperEmitter({ a: { b: 3 } }, { recursive: true })
   hyperObject.on('didSet', function (target, key, value, receiver) {
-    if (key.startsWith('_')) return
     t.is(hyperObject.a.b, 5, 'got noticed')
     t.end()
   })
@@ -61,10 +60,19 @@ tape('optionally recursive', function (t) {
 tape('some exiting type', function (t) {
   var hyperStream = hyperEmitter(PassThrough())
   hyperStream.on('didSet', function (target, key, value, receiver) {
-    if (key.startsWith('_')) return
     t.is(key, 'hyper', 'hyper')
     t.is(value, true, 'true')
     t.end()
   })
   hyperStream.hyper = true
+})
+
+tape('catch-all change event', function (t) {
+  var hyperObject = hyperEmitter({ a: { b: 3 } }, { recursive: true })
+  var i = 0
+  hyperObject.on('change', function () {
+    t.pass('change listener fired')
+    if (++i === 2) t.end()
+  })
+  hyperObject.a.c = 36
 })

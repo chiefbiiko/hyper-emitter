@@ -1,46 +1,12 @@
 var EventEmitter = require('events').EventEmitter
-var dealias = require('aka-opts')
-
-// make own module
-function truth () { return true }
-function reemit (only, target, ...sources) {
-  sources.forEach(function (source) {
-    source.eventNames()
-      .filter(only && only.length ? only.includes : truth, only)
-      .forEach(function (eventName) {
-        source.addListener(eventName, target.emit.bind(target, eventName))
-      })
-  })
-}
-// end own module
-
-function processOpts (opts) {
-  return Object.assign({
-    hiddenPropsPrefix: '_',
-    ignoreHiddenProps: true,
-    recursive: false
-  }, dealias(opts || {}, {
-    hiddenPropsPrefix: [
-      'hiddenStatePrefix',
-      'hiddenPrefix',
-      'privatePrefix'
-    ],
-    ignoreHiddenProps: [
-      'ignoreHidden',
-      'ignorePrivate',
-      'ignorePrivateProps' ,
-      'ignoreHiddenState',
-      'ignorePrivateState'
-    ],
-    recursive: [
-      'recurse',
-      'deep',
-      'nested',
-      'cascade',
-      'cascading'
-    ]
-  }))
-}
+var {
+  listenable,
+  problyEventEmitter,
+  problyEventTarget,
+  problyListenable,
+  processOpts,
+  reemit
+} = require('./utils.js')
 
 // TODO: xtend handler for watching function calls!!!
 function hyperEmitter (target, opts) {
@@ -100,7 +66,7 @@ function hyperEmitter (target, opts) {
     }
   }, opts)
   var proxy = new Proxy(target, handler)
-  if (target instanceof EventEmitter) reemit([], proxy, target)
+  if (problyListenable(target)) reemit([], proxy, listenable(target))
   else Object.assign(proxy.__proto__, EventEmitter.prototype)
   return proxy
 }

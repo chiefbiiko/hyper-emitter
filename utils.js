@@ -30,7 +30,7 @@ function problyListenable (x) {
   return problyEventEmitter(x) || problyEventTarget(x)
 }
 
-function listenable (x) {
+function maybeListenable (x) {
   if (problyEventTarget(x)) {
     x.addListener = x.addEventListener
     x.removeListener = x.removeEventListener
@@ -39,13 +39,15 @@ function listenable (x) {
 }
 
 function processOpts (opts) {
-  return Object.assign({
+  var options = Object.assign({
     hiddenPropsPrefix: '_',
     ignoreHiddenProps: true,
-    recursive: false
-  }, dealias(opts || {}, {
+    recursive: false,
+    revocable: false
+  }, dealias(Object.assign({}, opts || {}), {
     hiddenPropsPrefix: [
       'hiddenStatePrefix',
+      'privateStatePrefix',
       'hiddenPrefix',
       'privatePrefix'
     ],
@@ -62,12 +64,21 @@ function processOpts (opts) {
       'nested',
       'cascade',
       'cascading'
+    ],
+    revocable: [
+      'revoke'
     ]
   }))
+
+  if (options.recursive && options.revocable) {
+    throw new TypeError('cannot create a revocable proxy in recursive mode')
+  }
+
+  return options
 }
 
 module.exports = {
-  listenable,
+  maybeListenable,
   problyListenable,
   processOpts,
   reemit

@@ -1,15 +1,15 @@
 var EventEmitter = require('events').EventEmitter
 var {
-  listenable,
+  maybeListenable,
   problyListenable,
   processOpts,
   reemit
 } = require('./utils.js')
 
-// TODO: xtend handler for watching function calls!!!
 function hyperEmitter (target, opts) {
   opts = processOpts(opts)
-  var handler = Object.assign({
+
+  var handler = {
     get (target, key, receiver) {
       if (opts.recursive) {
         try {
@@ -62,11 +62,36 @@ function hyperEmitter (target, opts) {
       }
       return ok
     }
-  }, opts)
-  var proxy = new Proxy(target, handler)
-  if (problyListenable(target)) reemit([], proxy, listenable(target))
+  }
+
+  if (typeof target === 'function') {
+    Object.assign(handler, {
+      apply (target, thisArg, args) {
+        var rtn = target.call(thisArg, ...args)
+        proxy.emit('didApply', target, thisArg, args)
+        return rtn
+      },
+      construct (Target, args, NewTarget) {
+        var rtn = Reflect.construct(Target, args, NewTarget)
+        proxy.emit('didConstruct', Target, args, NewTarget)
+        return rtn
+      }
+    })
+  }
+
+  var rtn, proxy
+  if (opts.revocable) {
+    rtn = Proxy.revocable(target, Object.assign(handler, opts))
+    proxy = rtn.proxy
+  } else {
+    rtn = new Proxy(target, Object.assign(handler, opts))
+    proxy = rtn
+  }
+
+  if (problyListenable(target)) reemit([], proxy, maybeListenable(target))
   else Object.assign(proxy.__proto__, EventEmitter.prototype)
-  return proxy
+
+  return rtn
 }
 
 module.exports = hyperEmitter
